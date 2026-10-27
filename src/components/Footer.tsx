@@ -1,4 +1,4 @@
-import { Clock3, Instagram, MapPin, MessageCircle } from "lucide-react";
+import { AtSign, Clock3, MapPin, MessageCircle } from "lucide-react";
 
 function whatsAppHref() {
   const raw = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "";
@@ -29,7 +29,7 @@ export function Footer() {
             <p className="mt-6 max-w-md text-sm leading-8 text-zinc-500">تشخيص وبرمجة السيارات الحديثة، تخصيص أنظمة BYD وDiLink، وحماية وعناية متقدمة ضمن تجربة مبنية على الوضوح والدقة.</p>
             <div className="mt-6 flex flex-wrap gap-2">
               <a href={whatsapp} target={whatsappExternal ? "_blank" : undefined} rel={whatsappExternal ? "noreferrer" : undefined} className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/15 bg-cyan-300/[.045] px-4 py-2.5 text-[11px] font-bold text-cyan-100 hover:border-cyan-300/35"><MessageCircle className="size-4" /> WhatsApp</a>
-              <a href={instagram} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.025] px-4 py-2.5 text-[11px] font-bold text-zinc-300 hover:border-white/20 hover:text-white"><Instagram className="size-4" /> Instagram</a>
+              <a href={instagram} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[.025] px-4 py-2.5 text-[11px] font-bold text-zinc-300 hover:border-white/20 hover:text-white"><AtSign className="size-4" /> Instagram</a>
             </div>
           </div>
 
