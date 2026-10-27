@@ -16,8 +16,8 @@ export function TiltCard({ children, className }: { children: ReactNode; classNa
     const rect = event.currentTarget.getBoundingClientRect();
     const px = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
-    rawX.set(px * 8);
-    rawY.set(py * -8);
+    rawX.set(px * 9);
+    rawY.set(py * -9);
   }
 
   function reset() {
@@ -29,8 +29,8 @@ export function TiltCard({ children, className }: { children: ReactNode; classNa
     <motion.div
       onMouseMove={onMove}
       onMouseLeave={reset}
-      style={reduce ? undefined : { rotateX, rotateY, transformPerspective: 900 }}
-      whileHover={reduce ? undefined : { y: -6, scale: 1.012 }}
+      style={reduce ? undefined : { rotateX, rotateY, transformPerspective: 950 }}
+      whileHover={reduce ? undefined : { y: -7, scale: 1.02 }}
       transition={{ type: "spring", stiffness: 220, damping: 24 }}
       className={cn("will-change-transform", className)}
     >

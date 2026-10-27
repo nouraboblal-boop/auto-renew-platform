@@ -1,147 +1,180 @@
 "use client";
 
-import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { ArrowDownLeft, BatteryCharging, Cpu, ScanLine, ShieldCheck } from "lucide-react";
-import { useRef, type PointerEvent } from "react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type Variants
+} from "framer-motion";
+import { ArrowDownLeft, BatteryCharging, Cpu, Gauge, ScanLine, ShieldCheck, Sparkles } from "lucide-react";
+import { useRef, type PointerEvent, type ReactNode } from "react";
 import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
-import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/button";
 
-function VehicleWireframe() {
-  return (
-    <svg viewBox="0 0 760 280" className="h-auto w-full" role="img" aria-label="رسم تقني تجريدي لسيارة حديثة">
-      <defs>
-        <linearGradient id="carLine" x1="0" x2="1">
-          <stop offset="0" stopColor="#22d3ee" stopOpacity="0" />
-          <stop offset="0.25" stopColor="#22d3ee" stopOpacity="0.78" />
-          <stop offset="0.75" stopColor="#60a5fa" stopOpacity="0.86" />
-          <stop offset="1" stopColor="#60a5fa" stopOpacity="0" />
-        </linearGradient>
-        <filter id="glow"><feGaussianBlur stdDeviation="3.8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      </defs>
-      <path d="M65 194C113 160 151 146 214 140L290 73C310 55 332 46 367 46H477C510 46 535 58 557 83L609 140C650 145 679 157 703 181L724 207H69Z" fill="none" stroke="url(#carLine)" strokeWidth="2.2" filter="url(#glow)" />
-      <path d="M233 139L310 72H477C500 72 516 82 532 100L564 139M361 72L333 139M482 72L510 139" fill="none" stroke="#9ae6f2" strokeOpacity="0.34" strokeWidth="1.2" />
-      <path d="M111 197H185M598 197H681" stroke="#22d3ee" strokeOpacity="0.58" strokeWidth="2" />
-      <circle cx="236" cy="204" r="49" fill="#0b0c10" stroke="#22d3ee" strokeOpacity="0.5" strokeWidth="2" />
-      <circle cx="236" cy="204" r="29" fill="none" stroke="#ffffff" strokeOpacity="0.12" />
-      <circle cx="584" cy="204" r="49" fill="#0b0c10" stroke="#60a5fa" strokeOpacity="0.5" strokeWidth="2" />
-      <circle cx="584" cy="204" r="29" fill="none" stroke="#ffffff" strokeOpacity="0.12" />
-      <path d="M335 166H474" stroke="#ffffff" strokeOpacity="0.13" strokeDasharray="7 8" />
-      <circle cx="416" cy="166" r="4" fill="#22d3ee" />
-    </svg>
-  );
-}
+const HERO_IMAGE = "https://images.unsplash.com/photo-1765521917320-c011148e65e8?auto=format&fit=crop&fm=jpg&q=82&w=2400";
 
 const indicators = [
   { value: 3, suffix: "", label: "مسارات تخصصية" },
   { value: 5, suffix: "+", label: "نقاط فحص رقمية" },
-  { value: 360, suffix: "°", label: "منظور عناية متكامل" }
+  { value: 360, suffix: "°", label: "عناية متكاملة" }
 ];
+
+const containerVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.09, delayChildren: 0.06 } }
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 34, filter: "blur(10px)" },
+  visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.72, ease: [0.22, 1, 0.36, 1] } }
+};
+
+function TelemetryCard({ icon, eyebrow, value, className = "" }: { icon: ReactNode; eyebrow: string; value: string; className?: string }) {
+  return (
+    <motion.div
+      whileHover={{ y: -6, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 240, damping: 22 }}
+      className={`rounded-2xl border border-white/10 bg-[#090A0F]/72 p-4 shadow-[0_18px_50px_rgba(0,0,0,.35)] backdrop-blur-2xl ${className}`}
+    >
+      <div className="flex items-center justify-between gap-5">
+        <span className="grid size-9 place-items-center rounded-xl border border-cyan-300/20 bg-cyan-300/[.07] text-cyan-300">{icon}</span>
+        <span className="font-display text-[8px] tracking-[.18em] text-zinc-500" dir="ltr">{eyebrow}</span>
+      </div>
+      <strong className="mt-4 block font-display text-2xl font-black tracking-tight text-white" dir="ltr">{value}</strong>
+    </motion.div>
+  );
+}
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const glowX = useSpring(mouseX, { stiffness: 80, damping: 20, mass: 0.7 });
-  const glowY = useSpring(mouseY, { stiffness: 80, damping: 20, mass: 0.7 });
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const glowX = useSpring(pointerX, { stiffness: 75, damping: 20, mass: 0.7 });
+  const glowY = useSpring(pointerY, { stiffness: 75, damping: 20, mass: 0.7 });
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] });
-  const visualY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const visualOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.18]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, 120]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1.03, 1.12]);
+  const imageOpacity = useTransform(scrollYProgress, [0, 0.95], [1, 0.3]);
 
-  function handlePointerMove(event: PointerEvent<HTMLElement>) {
+  function onPointerMove(event: PointerEvent<HTMLElement>) {
     if (reduce) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    mouseX.set(event.clientX - rect.left - rect.width / 2);
-    mouseY.set(event.clientY - rect.top - rect.height / 2);
+    pointerX.set(event.clientX - rect.left - rect.width / 2);
+    pointerY.set(event.clientY - rect.top - rect.height / 2);
   }
 
   return (
     <section
       ref={sectionRef}
-      onPointerMove={handlePointerMove}
+      onPointerMove={onPointerMove}
       id="top"
       aria-labelledby="hero-title"
-      className="relative isolate min-h-[780px] overflow-hidden bg-[#0B0C10] pt-36 sm:pt-40 lg:min-h-[880px]"
+      className="relative isolate min-h-[850px] overflow-hidden bg-[#090A0F] pt-32 sm:pt-36 lg:min-h-[930px]"
     >
-      <div className="cyber-grid absolute inset-0 -z-30 opacity-40" aria-hidden="true" />
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_78%_28%,rgba(34,211,238,.12),transparent_26%),radial-gradient(circle_at_20%_10%,rgba(59,130,246,.10),transparent_30%),linear-gradient(180deg,transparent_0%,#0B0C10_88%)]" />
+      <div className="cyber-grid absolute inset-0 -z-30 opacity-45" aria-hidden="true" />
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_76%_24%,rgba(0,240,255,.12),transparent_27%),radial-gradient(circle_at_18%_18%,rgba(255,0,85,.075),transparent_24%),linear-gradient(180deg,rgba(9,10,15,.06),#090A0F_92%)]" />
+      <motion.div
+        aria-hidden="true"
+        animate={reduce ? undefined : { opacity: [0.45, 0.9, 0.45], scale: [0.95, 1.08, 0.95] }}
+        transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute right-[10%] top-[18%] -z-10 size-[440px] rounded-full bg-cyan-300/[.08] blur-[120px]"
+      />
       <motion.div
         aria-hidden="true"
         style={reduce ? undefined : { x: glowX, y: glowY }}
-        className="absolute left-1/2 top-[42%] -z-10 size-[430px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300/[0.075] blur-[110px]"
+        className="absolute left-1/2 top-[42%] -z-10 size-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/[.06] blur-[110px]"
       />
 
-      <div className="container-ar grid items-center gap-10 pb-20 lg:grid-cols-[1.04fr_.96fr] lg:gap-5 lg:pb-24">
-        <div className="relative z-10">
-          <Reveal>
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-cyan-300/20 bg-cyan-300/[0.055] px-3.5 py-2 text-[10px] font-extrabold tracking-[.12em] text-cyan-100 backdrop-blur-xl" dir="ltr">
-              <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-cyan-300 opacity-50"/><span className="relative inline-flex size-2 rounded-full bg-cyan-300"/></span>
-              EV DIAGNOSTICS • SMART SYSTEMS • PREMIUM CARE
-            </div>
-          </Reveal>
+      <div className="container-ar grid items-center gap-10 pb-16 lg:grid-cols-[.93fr_1.07fr] lg:gap-10 lg:pb-24">
+        <motion.div
+          variants={containerVariants}
+          initial={reduce ? false : "hidden"}
+          animate="visible"
+          className="relative z-20 pt-4"
+        >
+          <motion.div variants={itemVariants} className="inline-flex items-center gap-2.5 rounded-full border border-cyan-300/20 bg-cyan-300/[0.05] px-3.5 py-2 text-[9px] font-extrabold tracking-[.13em] text-cyan-100 backdrop-blur-xl" dir="ltr">
+            <span className="relative flex size-2"><span className="absolute inline-flex size-full animate-ping rounded-full bg-cyan-300 opacity-55"/><span className="relative inline-flex size-2 rounded-full bg-cyan-300"/></span>
+            EV DIAGNOSTICS • SMART SYSTEMS • PREMIUM CARE
+          </motion.div>
 
-          <Reveal delay={0.08}>
-            <h1 id="hero-title" className="mt-7 max-w-[790px] text-[clamp(3.3rem,7.6vw,7.1rem)] font-black leading-[1.06] tracking-[-.055em] text-white">
-              التقنية تلتقي
-              <span className="block bg-gradient-to-l from-cyan-200 via-cyan-300 to-blue-500 bg-clip-text text-transparent">بأدق التفاصيل.</span>
+          <motion.div variants={itemVariants} className="relative mt-7">
+            <motion.div
+              aria-hidden="true"
+              animate={reduce ? undefined : { opacity: [0.15, 0.42, 0.15], scale: [0.94, 1.04, 0.94] }}
+              transition={{ duration: 3.7, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute right-[4%] top-[12%] -z-10 h-36 w-72 rounded-full bg-cyan-300/15 blur-[70px]"
+            />
+            <h1 id="hero-title" className="max-w-[760px] text-[clamp(3.55rem,7.2vw,7.25rem)] font-black leading-[1.02] tracking-[-.055em] text-white">
+              هندسة رقمية.
+              <span className="block text-white">عناية <span className="bg-gradient-to-l from-[#00F0FF] via-cyan-300 to-[#0070F3] bg-clip-text text-transparent">بمستوى عالمي.</span></span>
             </h1>
-          </Reveal>
+          </motion.div>
 
-          <Reveal delay={0.15}>
-            <p className="mt-7 max-w-xl text-sm leading-8 text-zinc-400 sm:text-[15px] sm:leading-9">
-              مركز Auto Renew لتشخيص وبرمجة السيارات الحديثة، أنظمة BYD وDiLink، وحلول الحماية والعناية المتقدمة — ضمن تجربة رقمية واضحة من أول فحص حتى تسليم السيارة.
-            </p>
-          </Reveal>
+          <motion.p variants={itemVariants} className="mt-7 max-w-xl text-sm leading-8 text-zinc-400 sm:text-[15px] sm:leading-9">
+            Auto Renew يجمع بين تشخيص وبرمجة السيارات الحديثة، أنظمة BYD وDiLink، وحماية PPF والتجليد والعناية المتقدمة ضمن تجربة دقيقة، بصرية، ومبنية على البيانات.
+          </motion.p>
 
-          <Reveal delay={0.2} className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <a href="#services">استكشف الخدمات <ArrowDownLeft className="size-4" /></a>
+          <motion.div variants={itemVariants} className="mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg" variant="danger">
+              <a href="#estimate"><ScanLine className="size-4" /> احجز فحصاً فورياً <ArrowDownLeft className="size-4" /></a>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <a href="#estimate"><ScanLine className="size-4 text-cyan-300" /> احجز فحصاً فورياً</a>
+              <a href="#services"><Sparkles className="size-4 text-cyan-300" /> استكشف الخدمات</a>
             </Button>
-          </Reveal>
+          </motion.div>
 
-          <Reveal delay={0.28} className="mt-12 grid max-w-2xl grid-cols-3 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10">
+          <motion.div variants={itemVariants} className="mt-12 grid max-w-2xl grid-cols-3 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-[0_24px_80px_rgba(0,0,0,.28)]">
             {indicators.map((item) => (
-              <div key={item.label} className="bg-[#0d1015]/95 px-4 py-5 sm:px-5">
+              <div key={item.label} className="bg-[#0D0E12]/92 px-4 py-5 backdrop-blur-xl sm:px-5">
                 <strong className="font-display text-2xl font-black tracking-tight text-white sm:text-3xl" dir="ltr">
                   <AnimatedCounter value={item.value} suffix={item.suffix} />
                 </strong>
                 <p className="mt-2 text-[9px] leading-5 text-zinc-500 sm:text-[10px]">{item.label}</p>
               </div>
             ))}
-          </Reveal>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <motion.div style={reduce ? undefined : { y: visualY, opacity: visualOpacity }} className="relative min-h-[430px] lg:min-h-[620px]">
-          <div className="absolute inset-x-0 top-[15%] mx-auto h-[58%] max-w-[620px] rounded-[44%] border border-cyan-300/10 bg-[radial-gradient(circle_at_center,rgba(34,211,238,.08),transparent_66%)] blur-[1px]" />
-          <div className="absolute inset-x-0 top-[23%] mx-auto max-w-[680px]">
-            <VehicleWireframe />
+        <motion.div
+          style={reduce ? undefined : { y: imageY, scale: imageScale, opacity: imageOpacity }}
+          className="relative min-h-[520px] lg:min-h-[700px]"
+        >
+          <div className="absolute inset-[4%_0_2%_2%] rounded-[34px] border border-white/10 bg-[#0D0E12]/65 shadow-[0_50px_130px_rgba(0,0,0,.55)] backdrop-blur-xl" />
+          <div className="absolute inset-[7%_2%_5%_0] overflow-hidden rounded-[32px] border border-cyan-300/15">
+            <motion.div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${HERO_IMAGE})` }}
+              initial={reduce ? false : { scale: 1.08, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1] }}
+              aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,10,15,.82)_0%,rgba(9,10,15,.32)_42%,rgba(9,10,15,.12)_100%),linear-gradient(0deg,rgba(9,10,15,.88),transparent_48%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_24%,rgba(0,240,255,.20),transparent_22%),radial-gradient(circle_at_15%_75%,rgba(255,0,85,.16),transparent_25%)] mix-blend-screen" />
+            <motion.div
+              aria-hidden="true"
+              animate={reduce ? undefined : { y: ["-12%", "112%"] }}
+              transition={{ duration: 4.6, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-transparent via-cyan-200/[.10] to-transparent blur-sm"
+            />
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 sm:p-7">
+              <div>
+                <p className="font-display text-[8px] font-bold tracking-[.17em] text-cyan-200" dir="ltr">DARK LUXURY / DIGITAL PRECISION</p>
+                <p className="mt-2 max-w-sm text-xs leading-6 text-zinc-300">صورة سينمائية حقيقية مع طبقات بيانات وتوهج محسوب بدل رسوم مسطحة.</p>
+              </div>
+              <span className="hidden rounded-full border border-rose-400/25 bg-rose-500/[.12] px-3 py-1.5 font-display text-[8px] tracking-[.14em] text-rose-200 sm:inline-flex" dir="ltr">AUTO RENEW</span>
+            </div>
           </div>
 
-          <motion.div
-            animate={reduce ? undefined : { y: [0, -8, 0] }}
-            transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute left-0 top-[19%] rounded-2xl border border-white/10 bg-[#0a0d12]/78 p-4 shadow-2xl backdrop-blur-xl sm:left-[3%]"
-          >
-            <Cpu className="size-5 text-cyan-300" />
-            <p className="mt-3 font-display text-[9px] tracking-[.15em] text-zinc-500" dir="ltr">ECU / SYSTEM SCAN</p>
-            <strong className="mt-1 block text-xs text-white">قراءة وتحليل الأنظمة</strong>
-          </motion.div>
+          <TelemetryCard icon={<BatteryCharging className="size-4" />} eyebrow="BATTERY SOH" value="98% DEMO" className="absolute left-[-1%] top-[13%] w-[164px]" />
+          <TelemetryCard icon={<Cpu className="size-4" />} eyebrow="OBD / ECU" value="READY" className="absolute right-[-1%] top-[27%] w-[155px]" />
+          <TelemetryCard icon={<Gauge className="size-4" />} eyebrow="SYSTEM LATENCY" value="12 ms" className="absolute bottom-[8%] left-[8%] w-[160px]" />
 
-          <motion.div
-            animate={reduce ? undefined : { y: [0, 9, 0] }}
-            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-            className="absolute bottom-[19%] right-0 rounded-2xl border border-cyan-300/15 bg-[#0a0d12]/82 p-4 shadow-[0_0_40px_rgba(34,211,238,.08)] backdrop-blur-xl sm:right-[4%]"
-          >
-            <BatteryCharging className="size-5 text-cyan-300" />
-            <p className="mt-3 font-display text-[9px] tracking-[.15em] text-zinc-500" dir="ltr">SOH / SOC / BATTERY</p>
-            <strong className="mt-1 block text-xs text-white">بيانات البطارية بوضوح</strong>
-          </motion.div>
-
-          <div className="absolute bottom-[5%] left-[16%] hidden items-center gap-2 text-[10px] text-zinc-500 sm:flex" dir="ltr">
+          <div className="absolute bottom-[2%] right-[7%] hidden items-center gap-2 rounded-full border border-white/10 bg-black/35 px-4 py-2 text-[9px] text-zinc-400 backdrop-blur-xl sm:flex" dir="ltr">
             <ShieldCheck className="size-4 text-cyan-300" /> PRECISION FIRST. NO GUESSWORK.
           </div>
         </motion.div>

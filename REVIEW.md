@@ -1,59 +1,49 @@
-# Auto Renew UI/UX Upgrade — Review
+# Auto Renew — Dark Luxury Design System Correction
 
 ## Scope
 
-This review covers the existing `auto-renew-platform` Next.js application after the Dark Luxury / Cyber-Clean upgrade. The change keeps the current Next.js 16 / React 19 / Tailwind CSS 4 application and its existing deployment contracts, health endpoint, Docker image and GitHub Actions workflow.
+This correction keeps the existing Next.js 16 / React 19 / Tailwind CSS 4 application, booking logic, `/api/health`, Docker image and GitHub Actions deployment contract. It intentionally changes the visual layer from a simplified dark interface into a richer automotive presentation.
 
-## FLOWSTACK UI review status
+## Visual system
 
-The FLOWSTACK UI Compose, Builder and Review skills were used as the governance checklist for composition, ownership, responsive behavior, accessibility, tokens and verification.
+- Carbon base: `#090A0F` / `#0D0E12`.
+- Technical accent: electric cyan `#00F0FF` and electric blue `#0070F3`.
+- Conversion / booking accent: racing red `#FF0055` with `#E11D48` gradient.
+- Glass panels use dark translucent zinc surfaces, blur, inner highlights and bounded glow.
+- PPF / vinyl cards use a moving shimmer layer.
+- Hero and protection visuals use remote Unsplash images marked free to use under the Unsplash License on their source pages.
 
-**Exact FLOWSTACK package evidence is unavailable in this repository.** The repository does not install `@flowstack-ui/brick` (or another `@flowstack-ui/*` public package), and therefore there is no exact package version whose Agent Knowledge can be resolved. Per the FLOWSTACK rules, this review does **not** substitute “latest” documentation and does **not** invent Brick, Atom, Theme or Colors APIs.
+## Motion contract
 
-The user explicitly requested shadcn/ui and Framer Motion. The resulting Radix/shadcn-compatible primitives, motion helpers and application CSS are therefore treated as intentional **application-owned** UI, not as FLOWSTACK package components.
+Interactive components remain client components and use Framer Motion directly.
 
-## Architecture and ownership
+- Hero: staggered fade-up entrance, pulsing title glow, parallax image, animated scan line and floating telemetry.
+- Services: `whileInView` with `viewport={{ once: true }}` and staggered service cards.
+- Cards: 3D tilt plus `whileHover={{ scale: 1.02 }}` where appropriate.
+- EV comparison: staggered panels, animated meters and hoverable diagnostic chips.
+- Estimator: staggered controls, animated price changes and a distinct red WhatsApp CTA.
+- Reduced-motion CSS remains in place and existing Motion helpers continue to call `useReducedMotion`.
 
-- `src/components/Navbar.tsx` — floating glass navigation, mobile disclosure and WhatsApp quick action.
-- `src/components/Hero.tsx` — animated automotive hero, parallax, pointer-follow glow and counters.
-- `src/components/Services.tsx` — Radix Tabs service navigation, 3D tilt cards and illustrative system-data panel.
-- `src/components/InteractiveEstimator.tsx` — selection state, price estimation, validation and WhatsApp hand-off.
-- `src/components/EVFeatures.tsx` — explicitly illustrative before/after EV diagnostic comparison.
-- `src/components/Footer.tsx` — center details driven by public environment variables with safe non-invented fallbacks.
-- `src/components/ui/*` — local shadcn-compatible Button, Card and Tabs primitives.
-- `src/components/motion/*` — reusable reveal, counter and tilt behaviors.
-- `src/lib/catalog.mjs` / `src/lib/booking.mjs` — application-owned pricing and booking logic kept outside presentational components.
+## EV / DiLink presentation
 
-## Accessibility and interaction checks
+UI values such as `SOH 98%`, ECU module counts and status labels are explicitly marked `DEMO` / illustrative. They demonstrate the intended visual hierarchy and never represent an actual vehicle diagnosis. BYD Song Plus and Destroyer 05 are presented as compatibility examples subject to software/version validation.
 
-- Semantic landmarks remain intact (`header`, `nav`, `main`, `section`, `footer`).
-- A keyboard skip link remains available.
-- Mobile navigation exposes `aria-expanded` and `aria-controls`.
-- Tabs use Radix UI keyboard/focus behavior rather than a hand-rolled tab implementation.
-- Choice controls expose `aria-pressed` state.
-- Focus-visible rings are provided on interactive controls.
-- `prefers-reduced-motion` is respected by both CSS and Framer Motion helpers.
-- Decorative visuals are either hidden from assistive technology or labelled when meaningful.
-- WhatsApp is opened only from a user submit/click action; no request is auto-sent and no appointment is represented as confirmed.
-- EV comparison values are labelled as illustrative and are not presented as a real vehicle diagnosis.
+## FLOWSTACK UI Builder status
 
-## Responsive and visual-system checks
+The Builder skill was applied as an ownership, token, responsiveness and accessibility governance checklist. The repository still does **not** install an exact version of `@flowstack-ui/brick` or another public FLOWSTACK package. The FLOWSTACK instructions prohibit substituting latest/current documentation or inventing APIs, so no fictional Brick/Atom/Theme imports were added. Current Radix/shadcn-compatible components and application CSS remain intentional application-owned fallbacks.
 
-- One shared container width and section spacing scale is used throughout.
-- Layouts collapse from multi-column grids to stacked mobile layouts.
-- Floating navigation has a dedicated mobile menu.
-- Dark tokens use the requested carbon/graphite foundation (`#0B0C10`) with cyan/electric-blue accents.
-- Glassmorphism, glow, border-beam and parallax effects are bounded to decorative layers and do not own business state.
+## CI hardening included in this correction
 
-## Verification evidence
+The previous UI commit reached TypeScript successfully but failed ESLint for two unrelated reasons:
 
-- Existing baseline GitHub Actions run before this upgrade: successful (tests, typecheck, lint, Next.js production build, Docker build and health smoke test).
-- Local Node contract/logic tests for the upgraded source: **15/15 passed**.
-- Local TypeScript/TSX syntax transpilation check: passed.
-- Full dependency-aware typecheck/lint/production build is delegated to the post-commit GitHub Actions run because the local sandbox cannot resolve the npm registry.
+1. `magicpath-src/**` is a reference export rather than production source and contained explicit `any`; it is now excluded from production lint scope.
+2. `AnimatedCounter` synchronously called `setState` inside an effect; it now updates the rendered counter through `requestAnimationFrame` and a DOM ref instead of causing React cascading renders.
 
-## Remaining production inputs
+PostCSS and Tailwind config exports were also named to remove anonymous-default-export warnings.
 
-- `NEXT_PUBLIC_WHATSAPP_NUMBER` must contain the official E.164-style destination to activate booking.
-- Exact address/map URL and confirmed working hours should be supplied through the documented public environment variables.
-- Illustrative estimator prices are not official Auto Renew quotations.
+## Production inputs still required
+
+- `NEXT_PUBLIC_WHATSAPP_NUMBER` for the official destination.
+- Confirmed address/map and opening hours environment values.
+- Official price list if the estimator is to move beyond illustrative pricing.
+- If remote image independence is required, replace the Unsplash URLs with approved locally hosted assets before final launch.
