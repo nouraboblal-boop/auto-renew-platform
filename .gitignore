@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+*.tsbuildinfo
+
+# Keep generated lockfile tracked for reproducible CI when registry access is available.
+!package-lock.json

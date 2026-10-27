@@ -1,0 +1,102 @@
+name: CI — Test, containerize and publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: auto-renew-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Validate Next.js project
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            echo '::warning::No package-lock.json. Commit one for reproducible production builds.'
+            npm install --no-audit --no-fund
+          fi
+      - name: Unit tests
+        run: npm test
+      - name: TypeScript
+        run: npm run typecheck
+      - name: ESLint
+        run: npm run lint
+      - name: Next.js production build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_WHATSAPP_NUMBER: ${{ vars.NEXT_PUBLIC_WHATSAPP_NUMBER }}
+          NEXT_TELEMETRY_DISABLED: '1'
+
+  container:
+    name: Build and smoke-test Docker image
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build container
+        shell: bash
+        env:
+          WHATSAPP_NUMBER: ${{ vars.NEXT_PUBLIC_WHATSAPP_NUMBER }}
+        run: |
+          docker build \
+            --build-arg "NEXT_PUBLIC_WHATSAPP_NUMBER=${WHATSAPP_NUMBER}" \
+            --tag auto-renew-ci:${GITHUB_SHA} .
+      - name: Start container
+        run: docker run -d --name auto-renew-smoke -p 127.0.0.1:3000:3000 auto-renew-ci:${{ github.sha }}
+      - name: Test health endpoint
+        shell: bash
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health; then
+              echo 'Docker smoke test passed.'
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs auto-renew-smoke
+          exit 1
+      - name: Stop smoke container
+        if: always()
+        run: docker rm -f auto-renew-smoke || true
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish tested image to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SHORT_SHA="${GITHUB_SHA:0:12}"
+          docker tag "auto-renew-ci:${GITHUB_SHA}" "${IMAGE}:sha-${SHORT_SHA}"
+          docker tag "auto-renew-ci:${GITHUB_SHA}" "${IMAGE}:latest"
+          docker push "${IMAGE}:sha-${SHORT_SHA}"
+          docker push "${IMAGE}:latest"
+          echo "Published ${IMAGE}:sha-${SHORT_SHA}" >> "$GITHUB_STEP_SUMMARY"

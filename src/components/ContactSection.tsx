@@ -1,0 +1,4 @@
+import { ArrowIcon } from "./ArrowIcon";
+export function ContactSection() {
+  return <section id="contact" className="relative overflow-hidden bg-[linear-gradient(120deg,#8d172b,#e42c4b)] py-20 md:py-24"><div aria-hidden="true" className="pointer-events-none absolute -top-36 left-[25%] font-display text-[30rem] font-black leading-none tracking-tighter text-black/[.05]" dir="ltr">AR</div><div className="container-ar relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between"><div><span className="font-display text-[10px] tracking-[.22em] text-rose-100" dir="ltr">READY WHEN YOU ARE</span><h2 className="mt-4 text-[clamp(2rem,4.4vw,4rem)] font-black leading-[1.4] text-white">جاهز تعطي سيارتك<br />الاهتمام اللي تستحقه؟</h2></div><a href="#estimate" className="inline-flex w-fit min-h-13 items-center gap-6 bg-white px-6 py-3 text-[13px] font-extrabold text-zinc-900 transition hover:bg-zinc-100">اطلب استشارتك <ArrowIcon /></a></div></section>;
+}
